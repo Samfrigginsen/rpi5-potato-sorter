@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Potato Sorter AI — Control Dashboard | Pi 5 &amp; YOLOv8</title>
+  <meta name="description" content="Real-time AI-powered Potato Quality Sorting Dashboard — Raspberry Pi 5, YOLOv8n-cls ONNX, IMX219 Camera">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- ================================================================
+       MAIN VIEWPORT — fits 1920×1080 without scroll
+       ================================================================ -->
+  <div class="app-wrapper">
+
+    <!-- ===================  1. HEADER BAR  =================== -->
+    <header class="header-bar" id="headerSection">
+
+      <!-- Brand -->
+      <div class="brand-group">
+        <div class="brand-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C6.5 2 3 5.5 3 10.5C3 15 6 21 11.5 21C16.5 21 21 17 21 12C21 6.5 17 2 12 2Z"/>
+            <circle cx="8.5" cy="8.5" r="1" fill="currentColor"/>
+            <circle cx="14.5" cy="7.5" r="1" fill="currentColor"/>
+            <circle cx="12" cy="13.5" r="1.2" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Produce Sorting — Potato Dashboard</span>
+          <span class="brand-sub">AI Quality Inspector &nbsp;·&nbsp; Station #01 &nbsp;·&nbsp; Raspberry Pi 5</span>
+        </div>
+      </div>
+
+      <!-- Status Pill -->
+      <div class="status-pill status-idle" id="globalStatusPill">
+        <span class="status-dot"></span>
+        <span id="globalStatusText">IDLE</span>
+      </div>
+
+      <!-- Sim Mode Badge (shown only when engine is in sim mode) -->
+      <div class="sim-badge" id="simBadge" style="display:none;">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        SIM MODE
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <div class="serial-status disconnected" id="serialStatusBadge">
+          <span class="serial-dot"></span>
+          <span id="serialStatusText">ESP32 —</span>
+        </div>
+        <button class="ctrl-btn" id="btnExportCsv" title="Export inspection log as CSV">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          EXPORT CSV
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================  2. MAIN GRID  =================== -->
+    <main class="main-grid">
+
+      <!-- ─── LEFT: Live Camera Feed ─── -->
+      <div class="camera-panel" id="cameraPanel">
+
+        <!-- Live MJPEG feed from Flask /video_feed endpoint -->
+        <img
+          id="videoFeed"
+          src="/video_feed"
+          alt="Live camera feed — IMX219"
+          onerror="this.style.opacity='0.3'"
+        >
+
+        <!-- HUD Top Row -->
+        <div class="cam-hud-top">
+          <div class="live-badge" id="liveBadge">
+            <span class="live-dot"></span>
+            LIVE FEED
+          </div>
+          <div class="cam-hud-pills">
+            <div class="hud-pill">SESSIONS&nbsp;<span id="hudSessionCount">0</span></div>
+            <div class="hud-pill">MODE&nbsp;<span id="hudMode">IDLE</span></div>
+          </div>
+        </div>
+
+        <!-- YOLOv8 Status Overlay -->
+        <div class="yolo-bar" id="yoloOverlay">
+          <div class="yolo-bar-left">
+            <span class="yolo-badge">YOLOv8-cls</span>
+            <span id="yoloStatusLabel">[ Waiting for inspection cycle… ]</span>
+          </div>
+          <span class="conf-tag" id="yoloConfTag">READY</span>
+        </div>
+
+        <!-- Camera Footer -->
+        <div class="cam-footer">
+          <span class="cam-footer-info" id="camFooterInfo">IMX219 · 640×480 · picamera2</span>
+          <span class="cam-source-tag" id="camSourceTag">LIVE</span>
+        </div>
+      </div>
+
+      <!-- ─── RIGHT: Control Panel ─── -->
+      <div class="right-panel" id="rightPanel">
+
+        <!-- Status Banner -->
+        <div class="blocky-status st-idle" id="blockyStatus">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span id="blockyStatusText">IDLE — READY</span>
+        </div>
+
+        <!-- START SORTING CYCLE button -->
+        <div class="start-btn-wrap">
+          <button class="btn-start-sort" id="btnStartSort">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            START SORTING CYCLE
+          </button>
+        </div>
+
+        <!-- Grade Display Panel -->
+        <div class="grade-panel">
+          <div class="grade-panel-title">Quality Grade — Last Result</div>
+          <div class="grade-cards">
+
+            <!-- Grade A -->
+            <div class="grade-card grade-a" id="gradeCardA">
+              <div class="grade-label">Grade A</div>
+              <div class="grade-letter">A</div>
+              <div class="grade-count" id="gradeCountA">0 runs</div>
+              <div class="grade-conf" id="gradeConfA">—</div>
+            </div>
+
+            <!-- Grade B -->
+            <div class="grade-card grade-b" id="gradeCardB">
+              <div class="grade-label">Grade B</div>
+              <div class="grade-letter">B</div>
+              <div class="grade-count" id="gradeCountB">0 runs</div>
+              <div class="grade-conf" id="gradeConfB">—</div>
+            </div>
+
+            <!-- Grade C -->
+            <div class="grade-card grade-c" id="gradeCardC">
+              <div class="grade-label">Grade C</div>
+              <div class="grade-letter">C</div>
+              <div class="grade-count" id="gradeCountC">0 runs</div>
+              <div class="grade-conf" id="gradeConfC">—</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Frame Thumbnail Gallery -->
+        <div class="thumbnail-panel">
+          <div class="thumbnail-panel-title">
+            Captured Inspection Frames (5)
+          </div>
+          <div class="thumbnail-grid" id="thumbnailGrid">
+            <!-- 5 placeholder slots -->
+            <div class="thumb-slot" id="thumb1">
+              <div class="thumb-label">F1</div>
+            </div>
+            <div class="thumb-slot" id="thumb2">
+              <div class="thumb-label">F2</div>
+            </div>
+            <div class="thumb-slot" id="thumb3">
+              <div class="thumb-label">F3</div>
+            </div>
+            <div class="thumb-slot" id="thumb4">
+              <div class="thumb-label">F4</div>
+            </div>
+            <div class="thumb-slot" id="thumb5">
+              <div class="thumb-label">F5</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Hardware Test Controls -->
+        <div class="hw-test-panel">
+          <div class="hw-test-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            Manual Hardware Test
+          </div>
+          <div class="hw-test-controls">
+            <button class="hw-btn btn-motor" id="btnMotorToggle">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+              </svg>
+              Motor GPIO 17
+            </button>
+            <button class="hw-btn btn-servo" id="btnServoEject">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 2v20M2 12h20"/>
+                <circle cx="12" cy="12" r="4"/>
+              </svg>
+              Servo Eject GPIO 12
+            </button>
+          </div>
+          
+          <div class="speed-control-wrap" style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--card-border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.4rem;">
+              <span style="font-size: 0.65rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Inspection Speed</span>
+              <span id="speedValueLabel" class="mono" style="font-size:0.75rem; font-weight:700; color:var(--blue);">3.0s</span>
+            </div>
+            <input type="range" id="captureSpeedSlider" min="0.5" max="6.0" step="0.1" value="3.0" style="width:100%; cursor:pointer;">
+            <div style="display:flex; justify-content:space-between; font-size: 0.55rem; color:var(--text-muted); margin-top:0.2rem; font-weight:600;">
+              <span>FAST (0.5s)</span>
+              <span>SLOW (6.0s)</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /right-panel -->
+    </main>
+
+    <!-- ===================  3. TELEMETRY STRIP  =================== -->
+    <footer class="telem-strip">
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        <span class="telem-val mono" id="telemSessions">0</span>
+        <span class="telem-key">Sessions</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        <span class="telem-val mono tval-ok" id="telemGradeA">0</span>
+        <span class="telem-key">Grade A</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span class="telem-val mono tval-warn" id="telemGradeB">0</span>
+        <span class="telem-key">Grade B</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span class="telem-val mono tval-err" id="telemGradeC">0</span>
+        <span class="telem-key">Grade C</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="4" width="16" height="16" rx="2"/>
+          <rect x="9" y="9" width="6" height="6"/>
+          <line x1="9" y1="1" x2="9" y2="4"/>
+          <line x1="15" y1="1" x2="15" y2="4"/>
+          <line x1="9" y1="20" x2="9" y2="23"/>
+          <line x1="15" y1="20" x2="15" y2="23"/>
+          <line x1="20" y1="9" x2="23" y2="9"/>
+          <line x1="20" y1="14" x2="23" y2="14"/>
+          <line x1="1" y1="9" x2="4" y2="9"/>
+          <line x1="1" y1="14" x2="4" y2="14"/>
+        </svg>
+        <span class="telem-val mono" id="telemPlatform">PI5</span>
+        <span class="telem-key">Platform</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="telem-val mono" id="telemEngineMode">SIM</span>
+        <span class="telem-key">Inference</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="telem-val mono" id="telemUptime">00:00:00</span>
+        <span class="telem-key">Uptime</span>
+      </div>
+
+    </footer>
+  </div><!-- /app-wrapper -->
+
+
+  <!-- ================================================================
+       BELOW FOLD — Inspection Audit Log
+       ================================================================ -->
+  <section class="audit-section">
+    <div class="audit-section-header">
+      <div class="audit-title-group">
+        <h1 class="audit-title">Inspection &amp; Grade Log</h1>
+        <p class="audit-subtitle">Per-cycle classification audit trail &nbsp;·&nbsp; <span id="logItemCount">0 sessions</span></p>
+      </div>
+      <button class="btn-export" id="btnExportLog">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export CSV
+      </button>
+    </div>
+
+    <div class="audit-table-wrap">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Session #</th>
+            <th>Grade</th>
+            <th>Avg Confidence</th>
+            <th>Frame Classes</th>
+            <th>Serial TX</th>
+            <th>Sim Mode</th>
+          </tr>
+        </thead>
+        <tbody id="auditTableBody">
+          <!-- Populated by main.js -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>

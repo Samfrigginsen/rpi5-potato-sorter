@@ -1,0 +1,216 @@
+===
+Total paragraphs: 154
+Total tables: 2
+Total sections: 1
+===
+[000] style=normal               align=CENTER (1) text=''
+[001] style=normal               align=CENTER (1) text='United International University'
+[002] style=normal               align=CENTER (1) text='Department of CSE'
+[003] style=normal               align=CENTER (1) text=''
+[004] style=normal               align=CENTER (1) text=' Course Code: CSE 4326'
+[005] style=normal               align=CENTER (1) text=' Course Name: Microprocessors and Microcontrollers Laboratory'
+[006] style=normal               align=CENTER (1) text=''
+[007] style=normal               align=CENTER (1) text='Final Project Report'
+[008] style=normal               align=CENTER (1) text=' Project Name: Real-Time Computer Vision & Weight-Based Produce Sorting System'
+[009] style=normal               align=CENTER (1) text=''
+[010] style=normal               align=JUSTIFY (3) text=''
+[011] style=Heading 2            align=JUSTIFY (3) text=''
+[012] style=Heading 2            align=JUSTIFY (3) text='1. Introduction'
+[013] style=normal               align=JUSTIFY (3) text='Post-harvest quality grading is still one of the least digitalized stages of the agricultural supply chain in our context. A farmer or wholesaler sorts crops like potatoes, and most other tubers and fruits by hand. Hand sorting is slow, it is subjective, and it is inconsistent. Two experienced worke'
+[014] style=Heading 2            align=JUSTIFY (3) text='2. Hardware Construction'
+[015] style=normal               align=JUSTIFY (3) text='The physical architecture was designed for durability and modularity without the need for specialized 3D printing, focusing on structural integrity and EMI (Electromagnetic Interference) reduction.'
+[016] style=normal               align=JUSTIFY (3) text='Frame: Constructed from 1.5-inch white PVC, offering a lightweight but rigid chassis that naturally damps high-frequency motor vibrations.'
+[017] style=normal               align=JUSTIFY (3) text='Enclosure: The "brain" is housed in a plastic enclosure (The "White Box") mounted at the handle for ergonomic access and internal wire management.'
+[018] style=normal               align=JUSTIFY (3) text='Ergonomics: A 4-button tactile array is integrated into the handle, allowing for blind-touch navigation of the software interface.'
+[019] style=normal               align=None       text='Mounting: Sensors are staggered vertically to eliminate blind spots, creating a curtain of detection from the floor to waist height (1.0 foot, 1.5 feet, and 2.0 feet).'
+[020] style=normal               align=None       text=''
+[021] style=normal               align=None       text='Fig 1: 3D Render of the full project'
+[022] style=Heading 2            align=JUSTIFY (3) text=''
+[023] style=Heading 2            align=JUSTIFY (3) text=''
+[024] style=Heading 2            align=JUSTIFY (3) text='3. Battery and Power Systems'
+[025] style=normal               align=JUSTIFY (3) text='Reliable power is critical for consistent sensor readings. High-torque vibration motors can cause voltage fluctuations that crash microcontrollers.'
+[026] style=normal               align=JUSTIFY (3) text='Design Specs: Originally powered by an 18650 Lithium-Ion array and an MT3608 5V boost converter.'
+[027] style=normal               align=JUSTIFY (3) text='Power Crisis: During final assembly, the internal battery circuit malfunctioned. To prevent a catastrophic "brownout" or short-circuiting the entire logic board, the team pivoted to an External Power Bank configuration for the ESP32.'
+[028] style=normal               align=JUSTIFY (3) text='Safety & Stability: 1000uF capacitors are placed across the motor power rails to act as local energy reservoirs, preventing system resets when the haptic array activates at 100% intensity.'
+[029] style=normal               align=JUSTIFY (3) text=''
+[030] style=Heading 2            align=JUSTIFY (3) text='4. Sensor Suite: Multi-Physics Detection'
+[031] style=normal               align=JUSTIFY (3) text='The system uses "Sensor Fusion," where different physical properties (sound and light) are combined to verify a hazard.'
+[032] style=Heading 3            align=JUSTIFY (3) text='4.1 Ultrasonic Sonar (HC-SR04)'
+[033] style=normal               align=JUSTIFY (3) text='Placement: Mounted at 12 inches (1.0 foot).'
+[034] style=normal               align=JUSTIFY (3) text='Role: Wide-angle scouting for large obstacles like walls or furniture.'
+[035] style=normal               align=JUSTIFY (3) text='Logic Trigger: Yellow objects are designated as the primary trigger for sonar-specific calibration tests.'
+[036] style=normal               align=JUSTIFY (3) text='Noise Cancellation: Implemented "Mechanical Silence"—the system kills all vibration motors for 40ms before every sonar ping to prevent acoustic interference from the cane\'s own movement.'
+[037] style=Heading 3            align=JUSTIFY (3) text='4.2 Time-of-Flight Laser (VL53L1X)'
+[038] style=normal               align=JUSTIFY (3) text='Placement: Mounted at 24 inches (2.0 feet).'
+[039] style=normal               align=JUSTIFY (3) text='Role: Precision ranging and drop-off detection (curbs or steps).'
+[040] style=normal               align=JUSTIFY (3) text='Physics: Uses photon flight time, making it immune to ambient noise and highly accurate within the 0 to 12-inch critical zone.'
+[041] style=Heading 3            align=JUSTIFY (3) text='4.3 Sensor Fusion Logic'
+[042] style=normal               align=JUSTIFY (3) text='The system employs Minimum Selection Logic. If the Sonar sees an object at 30 inches but the ToF Laser sees a hazard at 6 inches, the system prioritizes the closer threat.'
+[043] style=Heading 2            align=JUSTIFY (3) text='┌──────────────────────────────────────────┐'
+[044] style=Heading 2            align=JUSTIFY (3) text='│        \tSMART GUIDANCE CANE        \t │'
+[045] style=Heading 2            align=JUSTIFY (3) text='│                                       \t │'
+[046] style=Heading 2            align=JUSTIFY (3) text='│  ┌──────────────┐   ┌─────────────-───┐  │'
+[047] style=Heading 2            align=JUSTIFY (3) text='│  │ ESP32-3S-ES  │   │ ESP32 (CONTROL) │  │'
+[048] style=Heading 2            align=JUSTIFY (3) text='│  │              │   │            \t    │  │'
+[049] style=Heading 2            align=JUSTIFY (3) text='│  │ • Camera     │   │ • ToF Sensors  │   │ '
+[050] style=Heading 2            align=JUSTIFY (3) text='│  │ • TinyML     │   │ • Compass / IMU│   │'
+[051] style=Heading 2            align=JUSTIFY (3) text='│  │ • Object AI  │   │ • Buttons (5)  │   │'
+[052] style=Heading 2            align=JUSTIFY (3) text='│  └──────┬───────┘   │ • Vibration\t   │   │'
+[053] style=Heading 2            align=JUSTIFY (3) text='│     \t│ UART  \t│   | Buzzer   \t   │   │'
+[054] style=Heading 2            align=JUSTIFY (3) text='│     \t└──────────▶│   | BLE      \t   │   │'
+[055] style=Heading 2            align=JUSTIFY (3) text='│                 \t└──────┬───────—--─-─┘   │'
+[056] style=Heading 2            align=JUSTIFY (3) text='│                        \t│ BLE       \t │'
+[057] style=Heading 2            align=JUSTIFY (3) text='└──────────────────────────-──┼────────────┘'
+[058] style=Heading 2            align=JUSTIFY (3) text='                          \t│'
+[059] style=Heading 2            align=JUSTIFY (3) text='┌─────────────────────────────▼───────────────────────┐'
+[060] style=Heading 2            align=JUSTIFY (3) text='│               \tSMARTPHONE (PWA)                 \t│'
+[061] style=Heading 2            align=JUSTIFY (3) text='│                                                     │'
+[062] style=Heading 2            align=JUSTIFY (3) text='│ • Web Bluetooth (BLE)                               │'
+[063] style=Heading 2            align=JUSTIFY (3) text='│ • Web Speech API (TTS only)                         \t│'
+[064] style=Heading 2            align=JUSTIFY (3) text='│ • Geolocation (GPS)                                \t│'
+[065] style=Heading 2            align=JUSTIFY (3) text='│ • MapLibre (map + routing logic)                   \t│'
+[066] style=Heading 2            align=JUSTIFY (3) text='│ • Input: gestures / arrow keys / cane buttons      \t│'
+[067] style=Heading 2            align=JUSTIFY (3) text='│ \t                                                │'
+[068] style=Heading 2            align=JUSTIFY (3) text='└─────────────────────────────┬───────────────────────┘'
+[069] style=Heading 2            align=JUSTIFY (3) text='                          \t│'
+[070] style=Heading 2            align=JUSTIFY (3) text='┌─────────────────────────────▼───────────────────────┐'
+[071] style=Heading 2            align=JUSTIFY (3) text='│            \tINTERNET / MAP SERVICES             │'
+[072] style=Heading 2            align=JUSTIFY (3) text='│ • MapLibre tiles                                   \t│'
+[073] style=Heading 2            align=JUSTIFY (3) text='│ • OpenRouteService / OSRM (walking routes)         \t│'
+[074] style=Heading 2            align=JUSTIFY (3) text='│ • Emergency share (SMS / WhatsApp link)            \t│'
+[075] style=Heading 2            align=JUSTIFY (3) text='─────────-───────────────────────────────────────—--──'
+[076] style=normal               align=None       text=''
+[077] style=normal               align=JUSTIFY (3) text=''
+[078] style=Heading 2            align=JUSTIFY (3) text='5. AI Vision & Crisis Management'
+[079] style=Heading 3            align=JUSTIFY (3) text='5.1 The XIAO S3 Disaster'
+[080] style=normal               align=JUSTIFY (3) text='Forty-eight hours before completion, the XIAO ESP32S3 Sense board short-circuited. This prevented the deployment of the custom-trained FOMO (Faster Objects, More Objects) models for puddle and stair detection directly onto the cane hardware.'
+[081] style=Heading 3            align=JUSTIFY (3) text='5.2 Engineering Workarounds'
+[082] style=normal               align=JUSTIFY (3) text='To fill the vision gap, the team implemented three rapid-response workarounds:'
+[083] style=normal               align=JUSTIFY (3) text="Direct Phone Integration: Mounting the smartphone on the cane in the camera's place using Envision AI for object detection."
+[084] style=normal               align=JUSTIFY (3) text="Custom Google ML Kit App: Developed an Android app to perform real-time hazard detection using the phone's camera, sending alerts back to the user."
+[085] style=normal               align=JUSTIFY (3) text='MIT App Inventor + Look AI: Created a demonstration app that accepts an ESP-Cam live feed and uses Look AI for scene description, maintaining the "auditory eyes" functionality.'
+[086] style=normal               align=JUSTIFY (3) text=''
+[087] style=Heading 2            align=JUSTIFY (3) text='6. Digital Interface: Web App & BLE'
+[088] style=normal               align=JUSTIFY (3) text='BLE HID Bridge: The ESP32 identifies as a Bluetooth Keyboard. The 4 buttons on the handle send TAB, ENTER, and BACK commands to a smartphone, allowing the user to navigate the app without touching the screen.'
+[089] style=normal               align=JUSTIFY (3) text='Telemetry: The system outputs real-time Serial data including distance (D), alert level (LVL), and system status (STAT).'
+[090] style=normal               align=JUSTIFY (3) text='Web Speech API: When a hazard is identified (via the workarounds), the site uses the phone\'s speaker to provide auditory confirmation (e.g., "Warning: Puddle detected").'
+[091] style=normal               align=JUSTIFY (3) text=''
+[092] style=normal               align=JUSTIFY (3) text=''
+[093] style=normal               align=JUSTIFY (3) text=''
+[094] style=normal               align=JUSTIFY (3) text=''
+[095] style=Heading 2            align=JUSTIFY (3) text='7. Calibration and Coordinate Geometry'
+[096] style=normal               align=JUSTIFY (3) text=''
+[097] style=normal               align=JUSTIFY (3) text='Data Cleaning: A Triple-Ping Median Filter is applied to all readings. The system takes three samples and discards outliers to eliminate "ghost" objects.'
+[098] style=normal               align=JUSTIFY (3) text='Dynamic Pulse Feedback: The haptic intensity increases as the distance decreases.'
+[099] style=normal               align=JUSTIFY (3) text='FAR (30-48 inches): Slow pulse.'
+[100] style=normal               align=JUSTIFY (3) text='MID (12-30 inches): Medium pulse.'
+[101] style=normal               align=JUSTIFY (3) text='CLOSE (6-12 inches): Rapid pulse.'
+[102] style=normal               align=JUSTIFY (3) text='VERY CLOSE (< 6 inches): Constant vibration.'
+[103] style=normal               align=JUSTIFY (3) text=''
+[104] style=Heading 2            align=JUSTIFY (3) text='8. Problem-Solving and Engineering Pivots'
+[105] style=normal               align=JUSTIFY (3) text=''
+[106] style=normal               align=JUSTIFY (3) text='Here are some of the minor problems we encountered and also how we tackled them:'
+[107] style=normal               align=JUSTIFY (3) text="The Compass Crisis: EMI from the motors made the physical magnetometer drift by 90°. We pivoted to using the phone's internal shielded GPS via the BLE bridge."
+[108] style=normal               align=JUSTIFY (3) text='Ground Interference: Sonar beams expand over distance. We solved this by locking the code to a 4.0-foot maximum range and using strict thresholding.'
+[109] style=normal               align=JUSTIFY (3) text='PWM Motor Control: Switched from digitalWrite to analogWrite to allow for "Quiet" and "Loud" haptic modes, adjustable via the web interface.'
+[110] style=normal               align=JUSTIFY (3) text='Here are some of the major problems we encountered and also how we tackled them:'
+[111] style=Heading 3            align=JUSTIFY (3) text=' The "Ghost Echo" Bug (Sonar Calibration)'
+[112] style=normal               align=JUSTIFY (3) text='The Mishap: Initially, the sonar was giving "ghost" readings of 4-6 inches even when the path was clear.'
+[113] style=normal               align=JUSTIFY (3) text='The Discovery: The 1.5-inch PVC pipe was so rigid that the vibration from the haptic motors was "tricking" the ultrasonic sensor into thinking the vibration sound was a returned ping.'
+[114] style=normal               align=JUSTIFY (3) text='The Fix: We implemented "Actuator-Sensor Interleaving." Added code to pause the motors for 40ms before every ping to ensure a "quiet" environment for the sonar.'
+[115] style=Heading 3            align=JUSTIFY (3) text='The I2C Address Conflict'
+[116] style=normal               align=JUSTIFY (3) text="The Mishap: When first plugging in the ToF sensor and the XIAO S3, the system wouldn't boot."
+[117] style=normal               align=JUSTIFY (3) text='The Discovery: Multiple sensors were trying to use the same I2C data bus pins, causing a "Bus Hang."'
+[118] style=normal               align=JUSTIFY (3) text='The Fix: We had to manually re-assign the SDA/SCL pins in the code and use a pull-up resistor circuit to stabilize the data signal over the long wire runs inside the PVC pipe.'
+[119] style=Heading 3            align=JUSTIFY (3) text='The BLE "Security Wall" (The Web App Issue)'
+[120] style=normal               align=JUSTIFY (3) text='The Mishap: We successfully connected the cane as a Bluetooth Keyboard, but the Web App couldn\'t "talk back" to change modes.'
+[121] style=normal               align=JUSTIFY (3) text='The Discovery: Modern mobile browser security (Web Bluetooth API) prevents a website from sending data to a device already paired as an HID Keyboard to prevent keylogging.'
+[122] style=normal               align=JUSTIFY (3) text='The Fix: We pivoted to a "One-Way Control Architecture." The handle buttons control the phone app, and the cane\'s internal logic handles the sensors independently, ensuring the user is never left without feedback if the phone disconnects.'
+[123] style=normal               align=JUSTIFY (3) text=''
+[124] style=Heading 2            align=JUSTIFY (3) text='9. Future Development Roadmap'
+[125] style=normal               align=JUSTIFY (3) text="Dynamic Range Scaling: Expanding the bubble to 6 feet if the phone's accelerometer detects a running pace."
+[126] style=normal               align=JUSTIFY (3) text='Solar Skin: Applying flexible solar film to the PVC frame for outdoor charging.'
+[127] style=normal               align=JUSTIFY (3) text='Bone Conduction: Integrating transducers into the handle for discreet audio alerts.'
+[128] style=normal               align=JUSTIFY (3) text=''
+[129] style=Heading 2            align=JUSTIFY (3) text='10. Conclusion'
+[130] style=normal               align=JUSTIFY (3) text='The current Prototype demonstrates that a navigation aid can be built using affordable materials and smart software pivots. By creating a 3-foot Safety Bubble and offloading complex tasks (GPS and Voice) to a smartphone, the project maximizes reliability and user safety. The result is a robust, inte'
+[131] style=normal               align=JUSTIFY (3) text=''
+[132] style=normal               align=JUSTIFY (3) text=''
+[133] style=normal               align=JUSTIFY (3) text=''
+[134] style=Heading 3            align=None       text='1. Appendix E: Bill of Materials (BOM)'
+[135] style=normal               align=None       text=''
+[136] style=Heading 3            align=None       text=''
+[137] style=Heading 3            align=None       text=''
+[138] style=Heading 3            align=None       text='2. Appendix F: Wiring Schematic'
+[139] style=normal               align=None       text='Decoupling: Capacitors (1000uF) across the motor power rails to prevent the "Brownout" resets discussed.'
+[140] style=normal               align=None       text='Logic Level: Connections between the XIAO and Main ESP32 via UART (TX/RX) for the AI triggers.'
+[141] style=normal               align=None       text=''
+[142] style=Heading 3            align=None       text='3. Appendix G: Code Repository'
+[143] style=normal               align=None       text="Code for the ESP32 that's controlling everything: https://github.com/Samfrigginsen/Blind-Cane-ESP32-Code"
+[144] style=normal               align=None       text='Code for the ESP32 XIAO thats controlling the AI:'
+[145] style=normal               align=None       text='Code for the site: https://github.com/Samfrigginsen/Blind-Cane-Dashboard'
+[146] style=Heading 3            align=None       text='4. Appendix H: Photographic Evidence'
+[147] style=normal               align=None       text='The Assembly: A photo of the "White Box" interior showing the wiring. This demonstrates "Mechanical Integrity."'
+[148] style=normal               align=None       text=''
+[149] style=normal               align=None       text='The Array: A side-on shot of the cane with markers at 12in, 18in , and 24in showing where the sensors are mounted.'
+[150] style=normal               align=None       text=''
+[151] style=normal               align=None       text=''
+[152] style=normal               align=None       text='The UI: A photo of the phone screen displaying the Web App while connected to the cane via BLE.'
+[153] style=normal               align=None       text=''
+
+
+=== TABLES ===
+
+Table 0: 7 rows x 1 cols
+  Row 0: ['Submitted by:']
+  Row 1: ['Name: Sameer Hossain']
+  Row 2: ['Student ID: 011211084']
+  Row 3: ['Section: E']
+  Row 4: ['Date of Performance: 4/10/26']
+  Row 5: ['Date of Submission: 6/10/26\n\n\nGroup: 6 \nSameer Hossain(011211084),Saker Munshi(0112410449),']
+  Row 6: ['Md. Rokonuzzaman(0112330712), Md. Thansirul Hoque Fahim(0112310068), Romim Ahmed Ador(0112330389)']
+
+Table 1: 10 rows x 5 cols
+  Row 0: ['Item', 'Component', 'Qty', 'Function', 'Specs']
+  Row 1: ['1', 'ESP32 DevKit V1', '1', 'Main Controller', 'Dual-core, BLE/WiFi']
+  Row 2: ['2', 'XIAO ESP32 S3 Sense', '1', 'AI Vision', 'OV2640 Cam, FOMO Model']
+  Row 3: ['3', 'VL53L1X ToF', '1', 'Precision Ranging', 'Laser-based, I2C']
+  Row 4: ['4', 'HC-SR04 Sonar', '1', 'Scouting', 'Ultrasonic']
+  Row 5: ['5', '18650 Li-Ion', '3', 'Power', '3.7V 3000mAh']
+  Row 6: ['6', 'MT3608 Boost', '2', 'Regulation', '3.7V to 5V Step-up']
+  Row 7: ['7', 'Haptic Motors', '4', 'Feedback', '10mm Disc, 3V-5V']
+  Row 8: ['8', 'PVC Frame', '1', 'Chassis', '1.5"']
+  Row 9: ['9', 'Switch', '4', 'Input', 'Generic tactile switch']
+
+
+=== RUN FONT DETAILS FOR FIRST 40 PARAGRAPHS (only non-empty) ===
+[001] 'United International University' => runs: ['font=Bodoni size=20.0 bold=True']
+[002] 'Department of CSE' => runs: ['font=Bodoni size=20.0 bold=True', 'font=None size=None bold=None']
+[004] ' Course Code: CSE 4326' => runs: ['font=Bodoni size=18.0 bold=True']
+[005] ' Course Name: Microprocessors and Microcontrollers Laboratory' => runs: ['font=Bodoni size=18.0 bold=True']
+[007] 'Final Project Report' => runs: ['font=Bodoni size=18.0 bold=True']
+[008] ' Project Name: Real-Time Computer Vision & Weight-Based Produce Sorting System' => runs: ['font=Bodoni size=18.0 bold=True', 'font=Bodoni size=15.0 bold=True']
+[012] '1. Introduction' => runs: ['font=Arial size=17.0 bold=None']
+[013] 'Post-harvest quality grading is still one of the least digitalized stages of the agricultural supply' => runs: ['font=Arial size=12.0 bold=None']
+[014] '2. Hardware Construction' => runs: ['font=Arial size=17.0 bold=None']
+[015] 'The physical architecture was designed for durability and modularity without the need for specialize' => runs: ['font=Arial size=12.0 bold=None']
+[016] 'Frame: Constructed from 1.5-inch white PVC, offering a lightweight but rigid chassis that naturally ' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[017] 'Enclosure: The "brain" is housed in a plastic enclosure (The "White Box") mounted at the handle for ' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[018] 'Ergonomics: A 4-button tactile array is integrated into the handle, allowing for blind-touch navigat' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None']
+[019] 'Mounting: Sensors are staggered vertically to eliminate blind spots, creating a curtain of detection' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[021] 'Fig 1: 3D Render of the full project' => runs: ['font=Arial size=12.0 bold=None']
+[024] '3. Battery and Power Systems' => runs: ['font=Arial size=17.0 bold=None']
+[025] 'Reliable power is critical for consistent sensor readings. High-torque vibration motors can cause vo' => runs: ['font=Arial size=12.0 bold=None']
+[026] 'Design Specs: Originally powered by an 18650 Lithium-Ion array and an MT3608 5V boost converter.' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[027] 'Power Crisis: During final assembly, the internal battery circuit malfunctioned. To prevent a catast' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[028] 'Safety & Stability: 1000uF capacitors are placed across the motor power rails to act as local energy' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[030] '4. Sensor Suite: Multi-Physics Detection' => runs: ['font=Arial size=17.0 bold=None']
+[031] 'The system uses "Sensor Fusion," where different physical properties (sound and light) are combined ' => runs: ['font=Arial size=12.0 bold=None']
+[032] '4.1 Ultrasonic Sonar (HC-SR04)' => runs: ['font=Arial size=13.0 bold=None']
+[033] 'Placement: Mounted at 12 inches (1.0 foot).' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[034] 'Role: Wide-angle scouting for large obstacles like walls or furniture.' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None']
+[035] 'Logic Trigger: Yellow objects are designated as the primary trigger for sonar-specific calibration t' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None']
+[036] 'Noise Cancellation: Implemented "Mechanical Silence"—the system kills all vibration motors for 40ms ' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[037] '4.2 Time-of-Flight Laser (VL53L1X)' => runs: ['font=Arial size=13.0 bold=None']
+[038] 'Placement: Mounted at 24 inches (2.0 feet).' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None', 'font=Arial size=12.0 bold=True']
+[039] 'Role: Precision ranging and drop-off detection (curbs or steps).' => runs: ['font=Arial size=12.0 bold=True', 'font=Arial size=12.0 bold=None']

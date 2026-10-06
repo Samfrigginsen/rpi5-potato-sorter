@@ -1,0 +1,7 @@
+flask>=3.0.0
+opencv-python>=4.9.0
+pyserial>=3.5
+onnxruntime>=1.17.0
+numpy>=1.26.0
+gpiozero>=2.0
+lgpio>=0.2.2.0

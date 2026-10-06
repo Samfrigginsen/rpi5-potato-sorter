@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Potato Sorter — Control Dashboard | Pi 5 &amp; YOLOv8</title>
+  <meta name="description" content="Real-time AI-powered Potato Sorting Machine Control Dashboard — Raspberry Pi 5 &amp; YOLOv8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================================================================
+       MAIN VIEWPORT WRAPPER — fits 1920×1080 without scroll
+       ================================================================ -->
+  <div class="app-wrapper">
+
+    <!-- ===================  1. HEADER BAR  =================== -->
+    <header class="header-bar" id="headerSection">
+
+      <!-- Brand -->
+      <div class="brand-group">
+        <div class="brand-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C6.5 2 3 5.5 3 10.5C3 15 6 21 11.5 21C16.5 21 21 17 21 12C21 6.5 17 2 12 2Z"/>
+            <circle cx="8.5" cy="8.5" r="1" fill="currentColor"/>
+            <circle cx="14.5" cy="7.5" r="1" fill="currentColor"/>
+            <circle cx="12" cy="13.5" r="1.2" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Produce Sorting Potato Dashboard</span>
+          <span class="brand-sub">Real-time Control &nbsp;·&nbsp; Station #01</span>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <button class="ctrl-btn ctrl-reset" id="btnResetCounters" title="Reset batch counters">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          RESET
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================  2. MAIN GRID  =================== -->
+    <main class="main-grid">
+
+      <!-- ─── LEFT: Live Camera Feed ─── -->
+      <div class="camera-panel" id="cameraPanel">
+
+        <!-- Canvas -->
+        <canvas id="conveyorCanvas"></canvas>
+
+        <!-- HUD Top Row -->
+        <div class="cam-hud-top">
+          <div class="live-badge" id="liveBadgeIndicator">
+            <span class="live-dot"></span>
+            LIVE FEED
+          </div>
+          <div class="cam-hud-pills">
+            <div class="hud-pill">FPS&nbsp;<span id="camFps">29.9</span></div>
+            <div class="hud-pill">ZONE&nbsp;<span>INSPECT-A</span></div>
+          </div>
+        </div>
+
+        <!-- YOLO Overlay Bar (bottom of canvas) -->
+        <div class="yolo-bar" id="yoloOverlayPill">
+          <div class="yolo-bar-left">
+            <span class="yolo-badge">YOLOv8</span>
+            <span id="yoloDetectionLabel">[ Scanning field of view... ]</span>
+          </div>
+          <span class="conf-tag" id="yoloConfPill">READY</span>
+        </div>
+
+        <!-- Camera Footer: toggles -->
+        <div class="cam-footer">
+          <div class="cam-toggles">
+            <label class="cam-toggle" title="Toggle bounding boxes">
+              <input type="checkbox" id="chkShowBoxes" checked>
+              <span>YOLOv8 Boxes</span>
+            </label>
+            <label class="cam-toggle" title="Toggle laser scanline">
+              <input type="checkbox" id="chkShowScanlines" checked>
+              <span>Scanline</span>
+            </label>
+            <label class="cam-toggle" title="Simulate defects">
+              <input type="checkbox" id="chkSimulateDefects" checked>
+              <span>Defects</span>
+            </label>
+          </div>
+          <span class="cam-footer-info" id="feedStatusText">TensorRT NPU · Inference Engine</span>
+        </div>
+      </div>
+
+      <!-- ─── RIGHT: Blocky Dashboard Panel ─── -->
+      <div class="right-panel">
+
+        <!-- Status Banner -->
+        <div class="blocky-status active" id="systemStatusPill">
+          Status: <span id="statusPillText">Active</span>
+        </div>
+
+        <!-- Big Controls -->
+        <div class="blocky-controls">
+          <button class="blocky-btn btn-stop" id="btnStopConveyor">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+            Stop
+          </button>
+          <button class="blocky-btn btn-start" id="btnStartConveyor">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Start
+          </button>
+        </div>
+
+        <!-- 3x2 Metrics Grid -->
+        <div class="blocky-grid">
+          <!-- Card 1 -->
+          <div class="blocky-card">
+            <div class="bc-title">Total Scanned</div>
+            <div class="bc-val mono" id="metricTotalScanned">1,240</div>
+          </div>
+          <!-- Card 2 -->
+          <div class="blocky-card">
+            <div class="bc-title">Speed, m/s</div>
+            <div class="bc-val mono" id="metricConveyorSpeed">0.40</div>
+          </div>
+          <!-- Card 3 -->
+          <div class="blocky-card">
+            <div class="bc-title">Reject</div>
+            <div class="bc-val mono reject-val" id="countBinReject">220</div>
+          </div>
+          <!-- Card 4 -->
+          <div class="blocky-card">
+            <div class="bc-title">Small</div>
+            <div class="bc-val mono small-val" id="countBinSmall">310</div>
+          </div>
+          <!-- Card 5 -->
+          <div class="blocky-card">
+            <div class="bc-title">Medium</div>
+            <div class="bc-val mono medium-val" id="countBinMedium">480</div>
+          </div>
+          <!-- Card 6 -->
+          <div class="blocky-card">
+            <div class="bc-title">Large</div>
+            <div class="bc-val mono large-val" id="countBinLarge">230</div>
+          </div>
+        </div>
+
+      </div><!-- /right-panel -->
+    </main>
+
+    <!-- ===================  3. BOTTOM TELEMETRY STRIP  =================== -->
+    <footer class="telem-strip">
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        <span class="telem-val" id="metricSysTemp">42.4°C</span>
+        <span class="telem-key">Temperature</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        <span class="telem-val" id="metricHumidity">65%</span>
+        <span class="telem-key">Humidity</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+        <span class="telem-val" id="metricCpuLoad">28%</span>
+        <span class="telem-key">Pi 5 CPU</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="telem-val" id="inferenceLatency">14.2 ms</span>
+        <span class="telem-key">Inference</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        <span class="telem-val tval-ok">1000M</span>
+        <span class="telem-key">Network</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="telem-val tval-ok">READY</span>
+        <span class="telem-key">4 Solenoids</span>
+      </div>
+
+      <div class="telem-sep"></div>
+
+      <div class="telem-item">
+        <svg class="telem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="telem-val mono" id="uptimeDisplay">02:44:18</span>
+        <span class="telem-key">Pi Uptime</span>
+      </div>
+
+    </footer>
+  </div><!-- /app-wrapper -->
+
+
+  <!-- ================================================================
+       BELOW FOLD — Optional Audit Log (scroll to view)
+       ================================================================ -->
+  <section class="audit-section">
+    <div class="audit-section-header">
+      <div class="audit-scroll-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        Scroll down to view detailed classification log
+      </div>
+      <div class="audit-title-group">
+        <h2 class="audit-title">YOLOv8 Classification &amp; Ejection Log</h2>
+        <p class="audit-subtitle">Per-item optical inspection audit trail &nbsp;·&nbsp; <span id="logItemCount">Live Stream</span></p>
+      </div>
+      <button class="btn-export" id="btnExportCsv">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+    </div>
+
+    <div class="audit-table-wrap">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Item ID</th>
+            <th>Classification</th>
+            <th>Grade / Size</th>
+            <th>Confidence</th>
+            <th>Assigned Bin</th>
+            <th>Actuator Triggered</th>
+          </tr>
+        </thead>
+        <tbody id="auditTableBody">
+          <!-- Populated by app.js -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <!-- ================================================================
+       RESET MODAL
+       ================================================================ -->
+  <div class="modal-backdrop" id="resetModal">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <div class="modal-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <h3 class="modal-title">Reset All Batch Counters?</h3>
+      <p class="modal-desc">This will zero out Total Scanned, all 4 bin counts, and clear the session log. This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-cancel" id="btnCancelReset">Cancel</button>
+        <button type="button" class="btn-modal-confirm" id="btnConfirmReset">Yes, Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
